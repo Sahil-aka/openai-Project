@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_URL from '../config';
 
 const Login = ({ setToken, showToast }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -12,7 +13,7 @@ const Login = ({ setToken, showToast }) => {
         setError('');
         setIsLoading(true);
 
-        const endpoint = isLogin ? 'http://localhost:8000/token' : 'http://localhost:8000/users';
+        const endpoint = isLogin ? `${API_URL}/token` : `${API_URL}/users`;
 
         try {
             const formData = new FormData();

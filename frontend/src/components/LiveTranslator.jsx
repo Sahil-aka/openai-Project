@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import API_URL from '../config';
 
 const LiveTranslator = ({ token }) => {
     const [mode, setMode] = useState('text');
@@ -27,7 +28,7 @@ const LiveTranslator = ({ token }) => {
             formData.append('text', inputText);
             formData.append('target_language', targetLang);
 
-            const response = await fetch('http://localhost:8000/translate/text', {
+            const response = await fetch(`${API_URL}/translate/text`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -61,7 +62,7 @@ const LiveTranslator = ({ token }) => {
 
                 setIsLoading(true);
                 try {
-                    const response = await fetch('http://localhost:8000/translate/voice', {
+                    const response = await fetch(`${API_URL}/translate/voice`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
@@ -114,7 +115,7 @@ const LiveTranslator = ({ token }) => {
 
                 setIsLoading(true);
                 try {
-                    const response = await fetch('http://localhost:8000/translate/image', {
+                    const response = await fetch(`${API_URL}/translate/image`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
@@ -132,7 +133,7 @@ const LiveTranslator = ({ token }) => {
 
     const fetchHistory = async () => {
         try {
-            const response = await fetch('http://localhost:8000/history', {
+            const response = await fetch(`${API_URL}/history`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -151,7 +152,7 @@ const LiveTranslator = ({ token }) => {
             formData.append('text', result);
             formData.append('language', targetLang);
 
-            const response = await fetch('http://localhost:8000/tts', {
+            const response = await fetch(`${API_URL}/tts`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -211,7 +212,7 @@ const LiveTranslator = ({ token }) => {
             const formData = new FormData();
             formData.append('text', inputText);
 
-            const response = await fetch('http://localhost:8000/detect-language', {
+            const response = await fetch(`${API_URL}/detect-language`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -233,7 +234,7 @@ const LiveTranslator = ({ token }) => {
             formData.append('text', result);
             formData.append('target_language', targetLang);
 
-            const response = await fetch('http://localhost:8000/pronunciation', {
+            const response = await fetch(`${API_URL}/pronunciation`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
