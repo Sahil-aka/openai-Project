@@ -28,12 +28,11 @@ import io
 # Initialize FastAPI app
 app = FastAPI(title="Live Multimodal Translation API", version="1.0.0")
 
-# Configure CORS for production and development
-# Allowing all origins for now to support multiple Vercel preview deployments
+# Configure CORS - allowing all origins temporarily for deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,  # Must be False when using allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
