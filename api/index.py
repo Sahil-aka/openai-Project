@@ -2,34 +2,33 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import sys
 import os
-import traceback
 
-# Create a fallback app instance
+# Minimal test - just return a working API
 app = FastAPI()
 
-# Add backend directory to sys.path
-backend_path = os.path.join(os.getcwd(), 'backend')
-sys.path.append(backend_path)
+@app.get("/api/health")
+def health():
+    return {"status": "ok", "message": "Minimal handler working"}
 
-try:
-    # Attempt to import the actual backend app
-    from main import app as backend_app
-    handler = backend_app
-except Exception as e:
-    # If import fails, use the fallback app to serve the error
-    error_msg = str(e)
-    tb = traceback.format_exc()
-    print(f"CRITICAL STARTUP ERROR: {error_msg}")
-    
-    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
-    async def catch_all(path: str):
-        return JSONResponse(
-            status_code=500,
-            content={
-                "status": "error",
-                "message": "Backend failed to start",
-                "detail": error_msg,
-                "traceback": tb.splitlines()
-            }
-        )
-    handler = app
+@app.post("/api/users")
+def create_user():
+    return {"status": "error", "message": "Backend import disabled for debugging"}
+
+@app.post("/api/token")  
+def login():
+    return {"status": "error", "message": "Backend import disabled for debugging"}
+
+@app.api_route("/api/{path:path}", methods=["GET", "POST"])
+async def catch_all(path: str):
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "debug",
+            "message": "Minimal handler active",
+            "path": path,
+            "cwd": os.getcwd(),
+            "sys_path": sys.path[:5]
+        }
+    )
+
+handler = app
