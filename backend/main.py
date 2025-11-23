@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -13,6 +14,21 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Initialize FastAPI app
 # Vercel deployment: root_path="/api"
 app = FastAPI(title="Live Multimodal Translation API", version="1.0.0", root_path="/api")
+
+# Global Exception Handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"GLOBAL ERROR: {exc}")
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "message": "Internal Server Error",
+            "detail": str(exc),
+            "traceback": traceback.format_exc().splitlines()
+        },
+    )
 
 # Configure CORS - Allow all Vercel deployments and localhost
 app.add_middleware(
