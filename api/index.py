@@ -1,47 +1,40 @@
-from http.server import BaseHTTPRequestHandler
-import json
+from fastapi import FastAPI
 import sys
 import os
-import subprocess
+import traceback
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        
-        status = {}
-        
-        # Check FastAPI import
-        try:
-            import fastapi
-            status["fastapi"] = f"Installed: {fastapi.__version__}"
-        except ImportError as e:
-            status["fastapi"] = f"Missing: {str(e)}"
-            
-        # Check other deps
-        deps = ["sqlalchemy", "jose", "passlib", "multipart", "google.generativeai", "gtts", "dotenv", "PIL", "httpx", "requests", "openai"]
-        for dep in deps:
+app = FastAPI()
+
+# Add backend to sys.path explicitly using cwd
+backend_path = os.path.join(os.getcwd(), "backend")
+sys.path.append(backend_path)
+
+try:
+    # Try to import the main app
+    from main import app as backend_app
+    handler = backend_app
+except Exception as e:
+    error_msg = str(e)
+    tb = traceback.format_exc()
+    print(f"Import Error: {error_msg}")
+    
+    @app.get("/{path:path}")
+    def catch_all(path: str):
+        backend_files = "backend dir not found"
+        if os.path.exists(backend_path):
             try:
-                __import__(dep)
-                status[dep] = "Installed"
-            except ImportError as e:
-                status[dep] = f"Missing: {str(e)}"
+                backend_files = os.listdir(backend_path)
+            except Exception as ls_err:
+                backend_files = f"Error listing backend: {ls_err}"
 
-        # List installed packages via pip
-        try:
-            installed = subprocess.check_output([sys.executable, "-m", "pip", "freeze"]).decode("utf-8").splitlines()
-        except Exception as e:
-            installed = [f"Error running pip freeze: {str(e)}"]
-
-        response = {
-            "status": "ok",
-            "message": "Dependency Check",
-            "imports": status,
-            "sys_path": sys.path,
+        return {
+            "status": "error",
+            "message": "Failed to import backend application",
+            "error": error_msg,
+            "traceback": tb.splitlines(),
             "cwd": os.getcwd(),
-            "files_in_root": os.listdir("."),
-            "pip_freeze": installed[:20] # First 20 packages
+            "sys_path": sys.path,
+            "backend_path": backend_path,
+            "backend_files": backend_files
         }
-        self.wfile.write(json.dumps(response, indent=2).encode('utf-8'))
-        return
+    handler = app
