@@ -66,11 +66,13 @@ try:
         ai_service = gemini_service
 
     # Create tables
-    # Wrap in try-except to prevent crash on read-only FS (though we fixed path)
+    # Critical for in-memory DB
     try:
         models.Base.metadata.create_all(bind=engine)
+        print("Database tables created successfully.")
     except Exception as e:
-        print(f"Database creation warning: {e}")
+        print(f"CRITICAL: Database creation failed: {e}")
+        traceback.print_exc()
 
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

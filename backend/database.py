@@ -5,8 +5,9 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 if os.environ.get("VERCEL"):
-    # Use /tmp directory for Vercel (ephemeral, but writable)
-    SQLALCHEMY_DATABASE_URL = "sqlite:////tmp/sql_app.db"
+    # Use in-memory database for Vercel to avoid ALL file system issues
+    # This is non-persistent but stable for demos
+    SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 else:
     SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
