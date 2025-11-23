@@ -1,40 +1,49 @@
-from fastapi import FastAPI
+from http.server import BaseHTTPRequestHandler
+import json
+import traceback
 import sys
 import os
-import traceback
 
-app = FastAPI()
-
-# Add backend to sys.path explicitly using cwd
-backend_path = os.path.join(os.getcwd(), "backend")
-sys.path.append(backend_path)
-
-try:
-    # Try to import the main app
-    from main import app as backend_app
-    handler = backend_app
-except Exception as e:
-    error_msg = str(e)
-    tb = traceback.format_exc()
-    print(f"Import Error: {error_msg}")
-    
-    @app.get("/{path:path}")
-    def catch_all(path: str):
-        backend_files = "backend dir not found"
-        if os.path.exists(backend_path):
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        
+        status = {}
+        
+        # Debug FastAPI Initialization
+        try:
+            from fastapi import FastAPI
+            status["import_fastapi"] = "Success"
+            
             try:
-                backend_files = os.listdir(backend_path)
-            except Exception as ls_err:
-                backend_files = f"Error listing backend: {ls_err}"
+                app = FastAPI()
+                status["init_fastapi"] = "Success"
+            except Exception as init_err:
+                status["init_fastapi"] = f"Failed: {str(init_err)}"
+                status["init_traceback"] = traceback.format_exc()
+                
+        except Exception as import_err:
+            status["import_fastapi"] = f"Failed: {str(import_err)}"
+            status["import_traceback"] = traceback.format_exc()
 
-        return {
-            "status": "error",
-            "message": "Failed to import backend application",
-            "error": error_msg,
-            "traceback": tb.splitlines(),
-            "cwd": os.getcwd(),
+        # Debug Backend Import
+        backend_path = os.path.join(os.getcwd(), "backend")
+        sys.path.append(backend_path)
+        
+        try:
+            import main
+            status["import_backend_main"] = "Success"
+        except Exception as backend_err:
+            status["import_backend_main"] = f"Failed: {str(backend_err)}"
+            status["backend_traceback"] = traceback.format_exc()
+
+        response = {
+            "status": "debug_mode",
+            "checks": status,
             "sys_path": sys.path,
-            "backend_path": backend_path,
-            "backend_files": backend_files
+            "cwd": os.getcwd()
         }
-    handler = app
+        self.wfile.write(json.dumps(response, indent=2).encode('utf-8'))
+        return
